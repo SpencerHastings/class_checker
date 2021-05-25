@@ -1,7 +1,7 @@
 import asyncio
 
-from modules.class_check.byuAPI import getSections, getCourses
-from modules.class_check.sqlDB import CourseDataDB, FilterDB
+from src.modules.class_check.byuAPI import getSections, getCourses
+from src.modules.class_check.sqlDB import CourseDataDB, FilterDB
 
 filterDB_name = "filters.db"
 

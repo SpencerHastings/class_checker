@@ -5,7 +5,7 @@ import discord
 from discord import Status
 from discord.ext import commands
 from discord.ext.commands import has_permissions, CheckFailure
-from config.settings import core_config
+from src.config.settings import core_config
 
 
 def get_time():

@@ -1,5 +1,5 @@
-from modules.class_check.courses import createCourseDB
-from modules.class_check.sqlDB import CourseDataDB
+from src.modules.class_check.courses import createCourseDB
+from src.modules.class_check.sqlDB import CourseDataDB
 
 
 async def makeDB(yearTerm, dbName):

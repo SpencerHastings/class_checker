@@ -8,8 +8,8 @@ from apscheduler.triggers.cron import CronTrigger
 
 from discord.ext.commands import has_permissions
 
-from modules.class_check.checker import makeDB, sqliteDiff
-from modules.class_check.sqlDB import FilterDB
+from src.modules.class_check.checker import makeDB, sqliteDiff
+from src.modules.class_check.sqlDB import FilterDB
 
 CHECKER_ID = "checker_task"
 
@@ -81,7 +81,7 @@ class CourseChecking(commands.Cog):
     async def startChecker(self, ctx: commands.Context):
         if not self.started:
             self.channelID = ctx.channel.id
-            self.scheduler.add_job(self.course_check, CronTrigger(hour="6,12,18", minute="0", second="0"), id=CHECKER_ID)
+            self.scheduler.add_job(self.course_check, CronTrigger(hour="3,9,15,21", minute="0", second="0"), id=CHECKER_ID)
             self.started = True
             await ctx.send("Checker Started")
         else:
