@@ -46,40 +46,35 @@ async def createCourseDB(yearTerm, dbname):
     filterDB = FilterDB(filterDB_name)
     coursesToFilter = filterDB.getCourses()
     departmentsToFilter = [row[0] for row in filterDB.getDepartments()]
-    try:
-        courseDB.createTables()
-        i = 0
-        total = len(course_data)
+    courseDB.createTables()
+    i = 0
+    total = len(course_data)
 
-        for courseID in course_data:
-            i = i + 1
-            course = course_data[courseID]
-            dept = course["dept_name"]
-            number = course["catalog_number"]
-            suffix = course["catalog_suffix"]
+    for courseID in course_data:
+        i = i + 1
+        course = course_data[courseID]
+        dept = course["dept_name"]
+        number = course["catalog_number"]
+        suffix = course["catalog_suffix"]
 
-            courseDB.insertCourse(course, courseID)
+        courseDB.insertCourse(course, courseID)
 
-            sections = course["sections"]
+        sections = course["sections"]
 
-            for section in sections:
-                courseDB.insertSection(section, courseID, dept, number, suffix)
+        for section in sections:
+            courseDB.insertSection(section, courseID, dept, number, suffix)
 
-            if checkCourseFilter(course, coursesToFilter, departmentsToFilter):
-                addSectionDetails(courseDB, courseID, yearTerm)
-                print("{0}/{1} courses processed".format(i, total))
-                await asyncio.sleep(3)
+        if checkCourseFilter(course, coursesToFilter, departmentsToFilter):
+            addSectionDetails(courseDB, courseID, yearTerm)
+            print("{0}/{1} courses processed".format(i, total))
+            await asyncio.sleep(3)
 
-        for course in coursesToFilter:
-            courseDB.insertOldFilterCourse(course[0], course[1], course[2])
-        for department in departmentsToFilter:
-            courseDB.insertOldFilterDepartment(department)
+    for course in coursesToFilter:
+        courseDB.insertOldFilterCourse(course[0], course[1], course[2])
+    for department in departmentsToFilter:
+        courseDB.insertOldFilterDepartment(department)
 
-        print("Done")
-        courseDB.commit()
-
-    except:
-        print("error")
-    finally:
-        courseDB.close()
+    print("Done")
+    courseDB.commit()
+    courseDB.close()
     return "done"
