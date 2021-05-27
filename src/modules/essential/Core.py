@@ -1,4 +1,5 @@
 import logging
+import os
 from datetime import datetime
 
 import discord
@@ -7,10 +8,14 @@ from discord.ext import commands
 from discord.ext.commands import has_permissions, CheckFailure
 from src.config.settings import core_config
 
+if os.getenv('LOCAL_DEV', 'False').lower() in 'true':
+    logFile = './logs/bot_'
+else:
+    logFile = '/data/logs/bot_'
 
 def get_time():
     now = datetime.now()
-    currentTime = now.strftime("%m-%d-%Y-%H-%M-%S")
+    currentTime = now.strftime("%m-%d-%Y_%H-%M-%S")
     return currentTime
 
 
@@ -27,7 +32,7 @@ class Core(commands.Cog):
             else:
                 await self.bot.change_presence(status=Status.online)
             self.first_start = False
-            logging.basicConfig(filename='./logs/bot' + get_time() + '.log',
+            logging.basicConfig(filename=logFile + get_time() + '.log',
                                 filemode='a',
                                 format='%(name)s - %(levelname)s - %(message)s',
                                 level=logging.INFO)

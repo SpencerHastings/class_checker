@@ -2,8 +2,8 @@ from src.modules.class_check.courses import createCourseDB
 from src.modules.class_check.sqlDB import CourseDataDB
 
 
-async def makeDB(yearTerm, dbName):
-    await createCourseDB(yearTerm, dbName)
+async def makeDB(yearTerm, dbName, filterDB):
+    await createCourseDB(yearTerm, dbName, filterDB)
 
 
 def sqliteDiff(oldDBname, newDBname):
@@ -103,7 +103,7 @@ def checkSections(results, oldDB, newDB):
             isNew = True
             oldVersion = None
             for diff_old in diff_sections_old:
-                if diff_old[0] == diff_new[0]:
+                if diff_old[0] == diff_new[0] and diff_old[1] == diff_new[1]:
                     isNew = False
                     oldVersion = diff_old
             if isNew:
@@ -114,9 +114,11 @@ def checkSections(results, oldDB, newDB):
                           diff_new[1]
                 results.append(res)
             else:
-                results.append(
-                    "-- Section \"" + diff_new[6] + " " + diff_new[2] + " " + diff_new[3] + " Section " + diff_new[
-                        1] + "\" changed:")
+                if diff_new[4] is None:
+                    res = "-- Section " + diff_new[1] + " " + diff_new[2] + " " + diff_new[3] + " Section changed:"
+                else:
+                    res = "-- Section " + diff_new[1] + " " + diff_new[2] + " " + diff_new[3] + " " + diff_new[4] + " Section changed:"
+                results.append(res)
                 for i in range(5, 12):
                     if diff_new[i] != oldVersion[i]:
                         results.append(
@@ -126,7 +128,7 @@ def checkSections(results, oldDB, newDB):
         for diff_old in diff_sections_old:
             isGone = True
             for diff_new in diff_sections_new:
-                if diff_old[0] == diff_new[0]:
+                if diff_old[0] == diff_new[0] and diff_old[1] == diff_new[1]:
                     isGone = False
 
             if isGone:
@@ -198,9 +200,12 @@ def checkInstructors(results, oldDB, newDB):
                             4] + " Section " + diff_new[1]
                     results.append(res)
             else:
-                results.append(
-                    "-- Instructor \"" + diff_new[6] + " " + diff_new[2] + " " + diff_new[3] + " Section " + diff_new[
-                        1] + "\" changed:")
+                if diff_new[4] is None:
+                    res = "-- Section " + diff_new[1] + " " + diff_new[2] + " " + diff_new[3] + " Instructors changed:"
+                else:
+                    res = "-- Section " + diff_new[1] + " " + diff_new[2] + " " + diff_new[3] + " " + diff_new[
+                        4] + " Instructors changed:"
+                results.append(res)
 
                 if diff_new[5] != oldVersion[5]:
                     results.append(
@@ -283,9 +288,12 @@ def checkCourseTimes(results, oldDB, newDB):
                             4] + " Section " + diff_new[1]
                     results.append(res)
             else:
-                results.append(
-                    "-- Course Time \"" + diff_new[6] + " " + diff_new[2] + " " + diff_new[3] + " Section " + diff_new[
-                        1] + "\" changed:")
+                if diff_new[4] is None:
+                    res = "-- Section " + diff_new[1] + " " + diff_new[2] + " " + diff_new[3] + " Course Time changed:"
+                else:
+                    res = "-- Section " + diff_new[1] + " " + diff_new[2] + " " + diff_new[3] + " " + diff_new[
+                        4] + " Course Time changed:"
+                results.append(res)
 
                 for i in range(6, 17):
                     if diff_new[i] != oldVersion[i]:

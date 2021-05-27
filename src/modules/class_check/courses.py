@@ -3,8 +3,6 @@ import asyncio
 from src.modules.class_check.byuAPI import getSections, getCourses
 from src.modules.class_check.sqlDB import CourseDataDB, FilterDB
 
-filterDB_name = "filters.db"
-
 
 def addSectionDetails(courseDB, courseID, yearTerm):
     response = getSections(yearTerm, courseID)
@@ -38,12 +36,12 @@ def checkCourseFilter(course, courseFilter, departmentFilter):
     return False
 
 
-async def createCourseDB(yearTerm, dbname):
+async def createCourseDB(yearTerm, dbname, filterDB):
     print("Getting Courses")
     response = getCourses(yearTerm)
     course_data = response.json()
     courseDB = CourseDataDB(dbname)
-    filterDB = FilterDB(filterDB_name)
+    filterDB = FilterDB(filterDB)
     coursesToFilter = filterDB.getCourses()
     departmentsToFilter = [row[0] for row in filterDB.getDepartments()]
     courseDB.createTables()

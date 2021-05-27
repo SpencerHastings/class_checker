@@ -1,3 +1,4 @@
+import asyncio
 import os
 import logging
 
@@ -14,8 +15,15 @@ from src.modules.class_check.sqlDB import FilterDB
 CHECKER_ID = "checker_task"
 
 yearTerm = '20215'
-oldDB = 'old.db'
-newDB = 'new.db'
+if os.getenv('LOCAL_DEV', 'False').lower() in 'true':
+    oldDB = 'old.db'
+    newDB = 'new.db'
+    filterDB_name = "filters.db"
+else:
+    oldDB = '/data/old.db'
+    newDB = '/data/new.db'
+    filterDB_name = "/data/filters.db"
+character_limit = 1800
 
 
 class CourseChecking(commands.Cog):
@@ -44,41 +52,61 @@ class CourseChecking(commands.Cog):
         else:
             c = self.bot.get_channel(channelID)
 
-        await makeDB(yearTerm, newDB)
+        await makeDB(yearTerm, newDB, filterDB_name)
 
-        results = sqliteDiff('old.db', 'new.db')
+        results = sqliteDiff(oldDB, newDB)
 
-        os.remove(os.getcwd() + "/" + oldDB)
-        os.rename(os.getcwd() + "/" + newDB, os.getcwd() + "/" + oldDB)
+        # if os.getenv('LOCAL_DEV', 'False').lower() in 'true':
+        #     os.remove(os.getcwd() + "/" + oldDB)
+        #     os.rename(os.getcwd() + "/" + newDB, os.getcwd() + "/" + oldDB)
+        # else:
+        #     os.remove(oldDB)
+        #     os.rename(newDB, oldDB)
 
-        output = ""
+        output = ['']
+        currentOutputIndex = 0
 
         for result in results:
-            output = '\n'.join([output, result])
+            currentOutput = output[currentOutputIndex]
+            if len(currentOutput) + len(result) < character_limit:
+                output[currentOutputIndex] = '\n'.join([currentOutput, result])
+            else:
+                output.append(result)
+                currentOutputIndex = currentOutputIndex + 1
 
-        logging.info(output)
-
-        await c.send(output)
+        for o in output:
+            logging.info(o)
+            await c.send(o)
 
     @commands.command()
     async def checked(self, ctx: commands.Context):
-        db = FilterDB('filters.db')
+        db = FilterDB(filterDB_name)
         results = []
 
         for course in db.getCourses():
-            results.append(course[0])
+            if course[2] is None:
+                results.append(course[0] + " " + course[1])
+            else:
+                results.append(course[0] + " " + course[1] + " " + course[2])
 
-        output = ""
+        output = ['']
+        currentOutputIndex = 0
 
         for result in results:
-            output = '\n'.join([output, result])
+            currentOutput = output[currentOutputIndex]
+            if len(currentOutput) + len(result) < character_limit:
+                output[currentOutputIndex] = '\n'.join([currentOutput, result])
+            else:
+                output.append(result)
+                currentOutputIndex = currentOutputIndex + 1
 
-        await ctx.send(output)
+        for o in output:
+            await ctx.send(o)
 
     @commands.command()
     @has_permissions(administrator=True)
     async def primeChecker(self, ctx: commands.Context):
-        await makeDB(yearTerm, oldDB)
+        await makeDB(yearTerm, oldDB, filterDB_name)
         await ctx.send("Checker Primed")
 
     @commands.command()
