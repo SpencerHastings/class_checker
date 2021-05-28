@@ -42,17 +42,20 @@ class CourseDataDB:
 
     def insertSection(self, section, course_id, dept_name, catalog_number, catalog_suffix):
         self.dbCursor.execute("INSERT INTO sections VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
-                              [course_id, section["section_number"], dept_name, catalog_number, catalog_suffix, section["fixed_or_variable"],
+                              [course_id, section["section_number"], dept_name, catalog_number, catalog_suffix,
+                               section["fixed_or_variable"],
                                section["credit_hours"], section["minimum_credit_hours"], section["honors"],
                                section["credit_type"], section["section_type"], section["mode"]])
 
     def insertInstructor(self, instructor, course_id, section_number, dept_name, catalog_number, catalog_suffix):
         self.dbCursor.execute("INSERT INTO instructors VALUES (?,?,?,?,?,?,?)",
-                              [course_id, section_number, dept_name, catalog_number, catalog_suffix, instructor["person_id"], instructor["sort_name"]])
+                              [course_id, section_number, dept_name, catalog_number, catalog_suffix,
+                               instructor["person_id"], instructor["sort_name"]])
 
     def insertCourseTime(self, courseTime, course_id, section_number, dept_name, catalog_number, catalog_suffix):
         self.dbCursor.execute("INSERT INTO course_time VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
-                              [course_id, section_number, dept_name, catalog_number, catalog_suffix, courseTime["sequence_number"], courseTime["begin_time"],
+                              [course_id, section_number, dept_name, catalog_number, catalog_suffix,
+                               courseTime["sequence_number"], courseTime["begin_time"],
                                courseTime["end_time"], courseTime["building"], courseTime["room"], courseTime["mon"],
                                courseTime["tue"], courseTime["wed"], courseTime["thu"], courseTime["fri"],
                                courseTime["sat"], courseTime["sun"]])
@@ -108,7 +111,8 @@ class FilterDB:
         self.dbConnection.close()
 
     def createTables(self):
-        self.dbCursor.execute('''CREATE TABLE "courses" ("dept_name" TEXT, "catalog_number" TEXT, "catalog_suffix" TEXT)''')
+        self.dbCursor.execute(
+            '''CREATE TABLE "courses" ("dept_name" TEXT, "catalog_number" TEXT, "catalog_suffix" TEXT)''')
         self.dbCursor.execute('''CREATE TABLE "departments" ("dept_name" TEXT UNIQUE)''')
 
     def clearTables(self):
@@ -130,3 +134,17 @@ class FilterDB:
     def getDepartments(self):
         self.dbCursor.execute("SELECT * FROM departments")
         return self.dbCursor.fetchall()
+
+    def removeCourse(self, dept_name, catalog_number, catalog_suffix):
+        if catalog_suffix is None:
+            self.dbCursor.execute(
+                "DELETE FROM courses WHERE dept_name = ? AND catalog_number = ? AND catalog_suffix IS NULL",
+                [dept_name, catalog_number])
+        else:
+            self.dbCursor.execute(
+                "DELETE FROM courses WHERE dept_name = ? AND catalog_number = ? AND catalog_suffix = ?",
+                [dept_name, catalog_number, catalog_suffix])
+
+    def removeDepartment(self, dept_name):
+        self.dbCursor.execute("DELETE FROM departments WHERE dept_name = ?",
+                              [dept_name])
