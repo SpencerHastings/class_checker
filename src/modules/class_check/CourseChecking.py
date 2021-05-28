@@ -9,6 +9,8 @@ from discord.ext.commands import has_permissions
 from src.modules.class_check.checker import makeDB, sqliteDiff
 from src.modules.class_check.sqlDB import FilterDB
 
+from pytz import timezone
+
 CHECKER_ID = "checker_task"
 
 yearTerm = '20215'
@@ -37,7 +39,7 @@ class CourseChecking(commands.Cog):
     async def on_ready(self):
         if self.first_start:
             self.first_start = False
-            self.scheduler.add_job(self.course_check, CronTrigger(hour="3,4,5,6,7,8,9,15,21", minute="0", second="0"),
+            self.scheduler.add_job(self.course_check, CronTrigger(hour="3,4,5,6,7,8,9,21", minute="0", second="0", timezone=timezone('US/Mountain')),
                                    id=CHECKER_ID)
             self.started = True
             logging.info('Checker Started on Bot Run')
