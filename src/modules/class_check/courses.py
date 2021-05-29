@@ -39,7 +39,7 @@ def checkCourseFilter(course, courseFilter, departmentFilter):
 async def createCourseDB(yearTerm, dbname, filterDB):
     print("Getting Courses")
     response = getCourses(yearTerm)
-    course_data = response.json()
+    course_data = response.json() #JsonDecodeError at 8am? check out maybe
     courseDB = CourseDataDB(dbname)
     filterDB = FilterDB(filterDB)
     coursesToFilter = filterDB.getCourses()

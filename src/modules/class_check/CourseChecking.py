@@ -24,6 +24,9 @@ else:
     filterDB_name = "/data/filters.db"
 character_limit = 1800
 
+hours = "10"
+
+tz = timezone('US/Mountain')
 
 class CourseChecking(commands.Cog):
 
@@ -39,7 +42,7 @@ class CourseChecking(commands.Cog):
     async def on_ready(self):
         if self.first_start:
             self.first_start = False
-            self.scheduler.add_job(self.course_check, CronTrigger(hour="3,4,5,6,7,8,9,21", minute="0", second="0", timezone=timezone('US/Mountain')),
+            self.scheduler.add_job(self.course_check, CronTrigger(hour=hours, minute="0", second="0", timezone=tz),
                                    id=CHECKER_ID)
             self.started = True
             logging.info('Checker Started on Bot Run')
@@ -121,7 +124,7 @@ class CourseChecking(commands.Cog):
     @has_permissions(manage_messages=True)
     async def startChecker(self, ctx: commands.Context):
         if not self.started:
-            self.scheduler.add_job(self.course_check, CronTrigger(hour="3,9,15,21", minute="0", second="0"),
+            self.scheduler.add_job(self.course_check, CronTrigger(hour=hours, minute="0", second="0", timezone=tz),
                                    id=CHECKER_ID)
             self.started = True
             await ctx.send("Checker Started")
