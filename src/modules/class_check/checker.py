@@ -1,3 +1,5 @@
+import datetime
+
 from src.modules.class_check.courses import createCourseDB
 from src.modules.class_check.sqlDB import CourseDataDB
 
@@ -27,13 +29,44 @@ instructor_labels = ["Course ID", "Section Number", "Department", "Course Number
 courseTime_labels = ["Course ID", "Section Number", "Department", "Course Number", "Course Suffix", "Sequence Number",
                      "Begin Time", "End Time", "Building", "Room", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 
-zero_indent = ""
-one_indent = "| "
-two_indent = "--| "
+
+indents = ['', ' ', '--| ']
+indents_r = ['', ' ', '  | ']
+
+last_indent = -1
+
+
+def indent(num: int):
+    global last_indent
+    if num == last_indent:
+        out = indents_r[num]
+    else:
+        out = indents[num]
+
+    last_indent = num
+    return out
+
+
+def courseTimePrettyPrint(courseTime):
+    begin_time = None if courseTime[6] is None else datetime.datetime.strptime(courseTime[6], '%H%M').strftime(
+        '%I:%M%p')
+    end_time = None if courseTime[7] is None else datetime.datetime.strptime(courseTime[7], '%H%M').strftime('%I:%M%p')
+
+    building = courseTime[8]
+    room = courseTime[9]
+
+    days = []
+    for i in range(10, 17):
+        if courseTime[i] is not None:
+            days.append(courseTime_labels[i])
+    days_string = ','.join(days)
+
+    return f'Bldg:{building} Room:{room} Time:{begin_time}-{end_time} Days:{days_string}'
 
 
 def checkCourses(results, oldDB, newDB):
-    results.append(zero_indent + "General Course Changes:")
+    results.append(f'{indent(0)}General Course Changes')
+    results.append('')
 
     old_courses = oldDB.getCourses()
     new_courses = newDB.getCourses()
@@ -53,17 +86,15 @@ def checkCourses(results, oldDB, newDB):
                     oldVersion = diff_old
             if not isNew:
                 if diff_new[4] is None:
-                    results.append(
-                        one_indent + "Course \"" + diff_new[2] + " " + diff_new[3] + " " + diff_new[6] + "\" changed:")
+                    res = f'{indent(1)}Course {diff_new[2]} {diff_new[3]} {diff_new[6]} changed:'
                 else:
-                    results.append(
-                        one_indent + "Course \"" + diff_new[2] + " " + diff_new[3] + " " + diff_new[4] + " " + diff_new[
-                            6] + "\" changed:")
+                    res = f'{indent(1)}Course {diff_new[2]} {diff_new[3]} {diff_new[4]} {diff_new[6]} changed:'
+                results.append(res)
                 for i in range(2, 7):
                     if diff_new[i] != oldVersion[i]:
                         results.append(
-                            two_indent + course_labels[i] + " changed from \"" + str(oldVersion[i]) + "\" to \"" + str(
-                                diff_new[i]) + "\"")
+                            f'{indent(2)} {course_labels[i]} changed from "{oldVersion[i]}" to "{diff_new[i]}"')
+                results.append('')
 
         for diff_new in diff_courses_new:
             isNew = True
@@ -72,11 +103,9 @@ def checkCourses(results, oldDB, newDB):
                     isNew = False
             if isNew:
                 if diff_new[4] is None:
-                    res = one_indent + "New Course Added: " + diff_new[2] + " " + diff_new[3] + " " + diff_new[6]
+                    res = f'{indent(1)}Course Added: {diff_new[2]} {diff_new[3]} {diff_new[6]}'
                 else:
-                    res = one_indent + "New Course Added: " + diff_new[2] + " " + diff_new[3] + " " + diff_new[
-                        4] + " " + \
-                          diff_new[6]
+                    res = f'{indent(1)}Course Added: {diff_new[2]} {diff_new[3]} {diff_new[4]} {diff_new[6]}'
                 results.append(res)
 
         for diff_old in diff_courses_old:
@@ -87,11 +116,9 @@ def checkCourses(results, oldDB, newDB):
 
             if isGone:
                 if diff_old[4] is None:
-                    res = one_indent + "Course Removed: " + diff_old[2] + " " + diff_old[3] + " " + diff_old[6]
+                    res = f'{indent(1)}Course Removed: {diff_old[2]} {diff_old[3]} {diff_old[6]}'
                 else:
-                    res = one_indent + "Course Removed: " + diff_old[2] + " " + diff_old[3] + " " + diff_old[4] + " " + \
-                          diff_old[
-                              6]
+                    res = f'{indent(1)}Course Removed: {diff_old[2]} {diff_old[3]} {diff_old[4]} {diff_old[6]}'
                 results.append(res)
 
     results.append("")
@@ -99,7 +126,9 @@ def checkCourses(results, oldDB, newDB):
 
 
 def checkSections(results, oldDB, newDB):
-    results.append(zero_indent + "General Section Changes:")
+    results.append(f'{indent(0)}General Section Changes')
+    results.append('')
+
     old_courses = oldDB.getCourses()
     new_courses = newDB.getCourses()
 
@@ -126,17 +155,15 @@ def checkSections(results, oldDB, newDB):
                     oldVersion = diff_old
             if not isNew:
                 if diff_new[4] is None:
-                    res = one_indent + "Section " + diff_new[1] + " " + diff_new[2] + " " + diff_new[
-                        3] + " Section changed:"
+                    res = f'{indent(1)}Section {diff_new[1]} {diff_new[2]} {diff_new[3]} changed:'
                 else:
-                    res = one_indent + "Section " + diff_new[1] + " " + diff_new[2] + " " + diff_new[3] + " " + \
-                          diff_new[4] + " Section changed:"
+                    res = f'{indent(1)}Section {diff_new[1]} {diff_new[2]} {diff_new[3]} {diff_new[4]} changed:'
                 results.append(res)
                 for i in range(5, 12):
                     if diff_new[i] != oldVersion[i]:
                         results.append(
-                            two_indent + section_labels[i] + " changed from \"" + str(oldVersion[i]) + "\" to \"" + str(
-                                diff_new[i]) + "\"")
+                            f'{indent(2)}{section_labels[i]} changed from "{oldVersion[i]}" to "{diff_new[i]}"')
+                results.append('')
 
         for diff_new in diff_sections_new:
             isNew = True
@@ -145,12 +172,9 @@ def checkSections(results, oldDB, newDB):
                     isNew = False
             if isNew:
                 if diff_new[4] is None:
-                    res = one_indent + "New Section Added: " + diff_new[2] + " " + diff_new[3] + " Section " + diff_new[
-                        1]
+                    res = f'{indent(1)}Section Added: {diff_new[2]} {diff_new[3]} Section {diff_new[1]}'
                 else:
-                    res = one_indent + "New Section Added: " + diff_new[2] + " " + diff_new[3] + " " + diff_new[
-                        4] + " Section " + \
-                          diff_new[1]
+                    res = f'{indent(1)}Section Added: {diff_new[2]} {diff_new[3]} {diff_new[4]} Section {diff_new[1]}'
                 results.append(res)
 
         for diff_old in diff_sections_old:
@@ -161,11 +185,9 @@ def checkSections(results, oldDB, newDB):
 
             if isGone:
                 if diff_old[4] is None:
-                    res = one_indent + "Section Removed: " + diff_old[2] + " " + diff_old[3] + " Section " + diff_old[1]
+                    res = f'{indent(1)}Section Removed: {diff_old[2]} {diff_old[3]} Section {diff_old[1]}'
                 else:
-                    res = one_indent + "Section Removed: " + diff_old[2] + " " + diff_old[3] + " " + diff_old[
-                        4] + " Section " + \
-                          diff_old[1]
+                    res = f'{indent(1)}Section Removed: {diff_old[2]} {diff_old[3]} {diff_old[4]} Section {diff_old[1]}'
                 results.append(res)
 
     results.append("")
@@ -173,7 +195,8 @@ def checkSections(results, oldDB, newDB):
 
 
 def checkInstructors(results, oldDB, newDB):
-    results.append(zero_indent + "Checked Instructor Changes:")
+    results.append(f'{indent(0)}Checked Instructor Changes')
+    results.append('')
 
     old_filters_courses = oldDB.getOldFilterCourse()
     old_filters_departments = oldDB.getOldFilterDepartment()
@@ -222,18 +245,15 @@ def checkInstructors(results, oldDB, newDB):
                     oldVersion = diff_old
             if not isNew:
                 if diff_new[4] is None:
-                    res = one_indent + "Section " + diff_new[1] + " " + diff_new[2] + " " + diff_new[
-                        3] + " Instructors changed:"
+                    res = f'{indent(1)}Instructors changed: Section {diff_new[1]} {diff_new[2]} {diff_new[3]}'
                 else:
-                    res = one_indent + "Section " + diff_new[1] + " " + diff_new[2] + " " + diff_new[3] + " " + \
-                          diff_new[
-                              4] + " Instructors changed:"
+                    res = f'{indent(1)}Instructors changed: Section {diff_new[1]} {diff_new[2]} {diff_new[3]} {diff_new[4]}'
                 results.append(res)
 
                 if diff_new[5] != oldVersion[5]:
                     results.append(
-                        two_indent + instructor_labels[6] + " changed from \"" + str(oldVersion[6]) + "\" to \"" + str(
-                            diff_new[6]) + "\"")
+                        f'{indent(2)}{instructor_labels[6]} changed from "{oldVersion[6]}" to "{diff_new[6]}"')
+                results.append('')
 
         for diff_new in diff_instructors_new:
             isNew = True
@@ -244,12 +264,12 @@ def checkInstructors(results, oldDB, newDB):
                 if not (diff_new[2] in diff_filters_departments_new or (
                         diff_new[2], diff_new[3], diff_new[4]) in diff_filters_courses_new):
                     if diff_new[4] is None:
-                        res = one_indent + "New Instructor Added: " + diff_new[2] + " " + diff_new[3] + " Section " + \
-                              diff_new[1]
+                        res = f'{indent(1)}Instructor Added: {diff_new[2]} {diff_new[3]} Section {diff_new[1]}'
                     else:
-                        res = one_indent + "New Instructor Added: " + diff_new[2] + " " + diff_new[3] + " " + diff_new[
-                            4] + " Section " + diff_new[1]
+                        res = f'{indent(1)}Instructor Added: {diff_new[2]} {diff_new[3]} {diff_new[4]} Section {diff_new[1]}'
                     results.append(res)
+                    results.append(f'{indent(2)}{diff_new[6]}')
+                    results.append('')
 
         for diff_old in diff_instructors_old:
             isGone = True
@@ -261,19 +281,20 @@ def checkInstructors(results, oldDB, newDB):
                 if not (diff_old[2] in diff_filters_departments_old or (
                         diff_old[2], diff_old[3], diff_old[4]) in diff_filters_courses_old):
                     if diff_old[4] is None:
-                        res = one_indent + "Instructor Removed: " + diff_old[2] + " " + diff_old[3] + " Section " + \
-                              diff_old[1]
+                        res = f'{indent(1)}Instructor Removed: {diff_old[2]} {diff_old[3]} Section {diff_old[1]}'
                     else:
-                        res = one_indent + "Instructor Removed: " + diff_old[2] + " " + diff_old[3] + " " + diff_old[
-                            4] + " Section " + diff_old[1]
+                        res = f'{indent(1)}Instructor Removed: {diff_old[2]} {diff_old[3]} {diff_old[4]} Section {diff_old[1]}'
                     results.append(res)
+                    results.append(f'{indent(2)}{diff_old[6]}')
+                    results.append('')
 
     results.append("")
     return
 
 
 def checkCourseTimes(results, oldDB, newDB):
-    results.append(zero_indent + "Checked Course Time Changes:")
+    results.append(f'{indent(0)}Checked Course Time Changes')
+    results.append('')
 
     old_filters_courses = oldDB.getOldFilterCourse()
     old_filters_departments = oldDB.getOldFilterDepartment()
@@ -322,20 +343,13 @@ def checkCourseTimes(results, oldDB, newDB):
                     oldVersion = diff_old
             if not isNew:
                 if diff_new[4] is None:
-                    res = one_indent + "Section " + diff_new[1] + " " + diff_new[2] + " " + diff_new[
-                        3] + " Course Time changed:"
+                    res = f'{indent(1)}Course Time changed: Section {diff_new[1]} {diff_new[2]} {diff_new[3]}'
                 else:
-                    res = one_indent + "Section " + diff_new[1] + " " + diff_new[2] + " " + diff_new[3] + " " + \
-                          diff_new[
-                              4] + " Course Time changed:"
+                    res = f'{indent(1)}Course Time changed: Section {diff_new[1]} {diff_new[2]} {diff_new[3]} {diff_new[4]}'
                 results.append(res)
-
-                for i in range(6, 17):
-                    if diff_new[i] != oldVersion[i]:
-                        results.append(
-                            two_indent + courseTime_labels[i] + " changed from \"" + str(
-                                oldVersion[i]) + "\" to \"" + str(
-                                diff_new[i]) + "\"")
+                results.append(f'{indent(2)}Old: {courseTimePrettyPrint(oldVersion)}')
+                results.append(f'{indent(2)}New: {courseTimePrettyPrint(diff_new)}')
+                results.append('')
 
         for diff_new in diff_courseTimes_new:
             isNew = True
@@ -346,12 +360,12 @@ def checkCourseTimes(results, oldDB, newDB):
                 if not (diff_new[2] in diff_filters_departments_new or (
                         diff_new[2], diff_new[3], diff_new[4]) in diff_filters_courses_new):
                     if diff_new[4] is None:
-                        res = one_indent + "New Course Time Added: " + diff_new[2] + " " + diff_new[3] + " Section " + \
-                              diff_new[1]
+                        res = f'{indent(1)}Course Time Added: {diff_new[2]} {diff_new[3]} Section {diff_new[1]}'
                     else:
-                        res = one_indent + "New Course Time Added: " + diff_new[2] + " " + diff_new[3] + " " + diff_new[
-                            4] + " Section " + diff_new[1]
+                        res = f'{indent(1)}Course Time Added: {diff_new[2]} {diff_new[3]} {diff_new[4]} Section {diff_new[1]}'
                     results.append(res)
+                    results.append(f'{indent(2)}{courseTimePrettyPrint(diff_new)}')
+                    results.append('')
 
         for diff_old in diff_courseTimes_old:
             isGone = True
@@ -363,12 +377,12 @@ def checkCourseTimes(results, oldDB, newDB):
                 if not (diff_old[2] in diff_filters_departments_old or (
                         diff_old[2], diff_old[3], diff_old[4]) in diff_filters_courses_old):
                     if diff_old[4] is None:
-                        res = one_indent + "Course Time Removed: " + diff_old[2] + " " + diff_old[3] + " Section " + \
-                              diff_old[1]
+                        res = f'{indent(1)}Course Time Removed: {diff_old[2]} {diff_old[3]} Section {diff_old[1]}'
                     else:
-                        res = one_indent + "Course Time Removed: " + diff_old[2] + " " + diff_old[3] + " " + diff_old[
-                            4] + " Section " + diff_old[1]
+                        res = f'{indent(1)}Course Time Removed: {diff_old[2]} {diff_old[3]} {diff_old[4]} Section {diff_old[1]}'
                     results.append(res)
+                    results.append(f'{indent(2)}{courseTimePrettyPrint(diff_old)}')
+                    results.append('')
 
     results.append("")
     return
