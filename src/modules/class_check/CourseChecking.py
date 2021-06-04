@@ -122,6 +122,11 @@ class CourseChecking(commands.Cog):
 
     @commands.command()
     @has_permissions(manage_messages=True)
+    async def testCheck(self, ctx: commands.Context):
+        await self.course_check()
+
+    @commands.command()
+    @has_permissions(manage_messages=True)
     async def startChecker(self, ctx: commands.Context):
         if not self.started:
             self.scheduler.add_job(self.course_check, CronTrigger(hour=hours, minute="0", second="0", timezone=tz),
